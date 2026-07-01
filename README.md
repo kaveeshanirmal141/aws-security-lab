@@ -1,4 +1,5 @@
 # AWS Cloud Security Lab
+![Image Alt](https://github.com/kaveeshanirmal141/aws-security-lab/blob/main/AWS%20CloudSecurity%20Art.jpeg?raw=true)
 
 A hands-on offensive security lab covering six AWS attack categories.
 Each module deploys vulnerable infrastructure via Terraform, executes the attack,
